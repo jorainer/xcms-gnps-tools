@@ -111,6 +111,92 @@ getEdgelist <- function(peaklist) {
     res
 }
 
+#' @title Extract feature annotations from CAMERA results
+#'
+#' @description
+#'
+#' Similar to the `getEdgelist` function, this function extracts information
+#' from a `CAMERA` result for use in GNPS.
+#'
+#' @param x `xsAnnotate` object after calling `findAdducts`.
+#'
+#' @return
+#'
+#' `data.frame` with columns:
+#' - `"annotation network number"`: ion identify network (IIN) number. All
+#'   features predicted by `CAMERA` to be an adduct of a (co-eluting) compound
+#'   with the same mass are part of this IIN. If a feature was predicted to be
+#'   an adduct of two different compounds (with different masses) the ID of the
+#'   larger network is reported. All features for which no adduct annotation is
+#'   available will have an `NA` in this column.
+#' - `"best ion"`: the adduct definition of the feature.
+#' - `"correlation group ID"`: this corresponds to the `"pcgroup"` column in
+#'   `getPeaklist(x)`.
+#' - `"auto MS2 verify"`: always `NA`.
+#' - `"identified by n="`: the size of the IIN.
+#' - `"partners"`: all other features (rows in the feature table) of this IIN.
+#' - `"neutral M mass"`: the mass of the compound.
+#'
+#' @author Johannes Rainer
+#'
+#' @noRd
+getFeatureAnnotations <- function(x) {
+    if (!length(x@annoID))
+        stop("No adduct information present. Please call 'findAdducts' on ",
+             "the object.")
+    corr_group <- rep(seq_along(x@pspectra), lengths(x@pspectra))
+    corr_group <- corr_group[order(unlist(x@pspectra, use.names = FALSE))]
+
+    ## Get the all ids (feature rows) for which an adduct was defined
+    ids <- unique(x@annoID[, "id"])
+
+    ## Note: @pspectra contains the "correlation groups", @annoID the
+    ## adduct groups, but it can happen that two ids are in the same adduct
+    ## group without being in the same correlation group!
+
+    ## loop through the adduct definitions and build the output data.frame
+    adduct_def <- lapply(ids, function(id) {
+        ## IDs of the same correlation group
+        ids_pcgroup <- x@pspectra[[corr_group[id]]]
+        ## ID of the adduct annotation groups this id is part of 
+        anno_grp <- x@annoID[x@annoID[, "id"] == id, "grpID"]
+        ## Subset the adduct annotation to rows matching the annotation group
+        ## of the present ID and to ids present in the same correlation group.
+        adduct_ann <- x@annoID[x@annoID[, "id"] %in% ids_pcgroup &
+                               x@annoID[, "grpID"] %in% anno_grp, , drop = FALSE]
+        ## if we have more than one annotation group, select the bigger one
+        if (length(anno_grp) > 1) {
+            cnts <- table(adduct_ann[, "grpID"])
+            adduct_ann <- adduct_ann[
+                adduct_ann[, "grpID"] ==
+                names(cnts)[order(cnts, decreasing = TRUE)][1], ,
+                drop = FALSE]
+        }
+        grp_id <- adduct_ann[1, "grpID"]
+        ## different adduct rules can match the same m/z - we're just taking
+        ## the first one (with lower ruleID)
+        rule_id <- adduct_ann[adduct_ann[, "id"] == id, "ruleID"][1]
+        ids_grp <- adduct_ann[, "id"]
+        df <- data.frame(
+            `row ID` = id,
+            `annotation network number` = unname(grp_id),
+            `best ion` = as.character(x@ruleset[rule_id, "name"]),
+            `identified by n=` = nrow(adduct_ann),
+            `partners` = paste0(ids_grp[ids_grp != id], collapse = ";"),
+            `neutral M mass` = unname(
+                x@annoGrp[x@annoGrp[, "id"] == grp_id, "mass"]),
+            stringsAsFactors = FALSE, check.names = FALSE)
+    })
+    adduct_def <- do.call(rbind, adduct_def)
+    res <- adduct_def[rep("other", length(corr_group)), ]
+    res[, "row ID"] <- seq_along(corr_group)
+    rownames(res) <- as.character(res[, "row ID"])
+    res[ids, ] <- adduct_def
+    res$`correlation group ID` <- corr_group
+    res$`auto MS2 verify` <- NA
+    res
+}
+
 #' Helper function to extract the adduct annotation from a pair of adducts
 #' from the same *pcgroup*.
 #'
