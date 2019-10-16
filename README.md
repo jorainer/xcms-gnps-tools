@@ -11,11 +11,15 @@ for details on xcms integration into FBMN, and the following [GitHub
 repo](https://github.com/DorresteinLaboratory/XCMS3_FeatureBasedMN) for example
 scripts as Jupyter notebook and RCommander script.
  
-Two main functions are provided:
+The main provided functions are:
 
 - `formatSpectraForGNPS`: format spectra for MGF export in the format expected
   by GNPS.
 - `getEdgelist`: extract a list of *edges* between co-eluting ions potentially
   representing adducts or isotopes of the same metabolite as defined by
   `CAMERA`.
+- `getFeatureAnnotations`: extract adduct annotations for features from a
+  `CAMERA` result in the format required for Ion Identity Networking (IIN) in
+  FBMN/GNPS.
+  
 
