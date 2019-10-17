@@ -82,9 +82,9 @@ maxTic <- function(z) {
 #' Column `"EdgeType"` is always `"MS1 annotation"` and column `"Score"` `NA`
 #' (since no score can be exported from `CAMERA`). Columns `"Annotation"`
 #' contains the adduct names and their difference in m/z if **both** edges
-#' (features) were predicted to be an adduct of the **same** compound.
-#' Column `"Isotope"` provides the same information as for adducts, only for
-#' isotope definitions. Column `"pcgroup"` provides the information which
+#' (features) were predicted to be an adduct of the **same** compound. If
+#' isotope annotations are available, these are also added to the column.
+#' Column `"CorrelationGroup"` provides the information which
 #' features were grouped by `CAMERA` into the same group.
 #' 
 #' @param peaklist `data.frame` as returned by the [getPeaklist()] function
@@ -93,7 +93,7 @@ maxTic <- function(z) {
 #' @return `data.frame` with edge definitions (see description for more
 #'     details).
 #'
-#' @author Mar Garcia-Aloy, Johannes Rainer
+#' @author Mar Garcia-Aloy
 #' 
 #' @examples
 #' 
@@ -259,13 +259,16 @@ getFeatureAnnotations <- function(x) {
 .process_pcgroup <- function(x) {
     if (nrow(x) > 1) {
         res <- combn(seq_len(nrow(x)), 2, FUN = function(z) {
+            anno <- .define_annot(x[z, ])
+            iso <- .define_isotop(x[z, ])
+            if (is.na(anno)) anno <- character()
+            if (is.na(iso)) iso <- character()
             data.frame(ID1 = rownames(x)[z[1]],
                        ID2 =  rownames(x)[z[2]],
-                       EdgeType = "MS1 annotation",
+                       EdgeType = if (length(anno)) "MS1 annotation" else "MS1 correlation",
                        Score = NA,
-                       Annotation = .define_annot(x[z,]),
-                       Isotope = .define_isotop(x[z,]),
-                       pcgroup = x$pcgroup[1],
+                       Annotation = paste0(anno, iso, collapse = " "),
+                       CorrelationGroup = x$pcgroup[1],
                    stringsAsFactors = FALSE)
         }, simplify = FALSE)
         do.call(rbind, res)
