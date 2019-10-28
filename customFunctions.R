@@ -266,7 +266,7 @@ getFeatureAnnotations <- function(x) {
             data.frame(ID1 = rownames(x)[z[1]],
                        ID2 =  rownames(x)[z[2]],
                        EdgeType = if (length(anno)) "MS1 annotation" else "MS1 correlation",
-                       Score = NA,
+                       Score = 0.0,
                        Annotation = paste0(anno, iso, collapse = " "),
                        CorrelationGroup = x$pcgroup[1],
                    stringsAsFactors = FALSE)
