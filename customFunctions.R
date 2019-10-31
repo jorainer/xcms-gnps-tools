@@ -49,7 +49,8 @@ formatSpectraForGNPS <- function(x) {
 plotSpectra <- function(x, col = "#00000040", type = "h", main, ...) {
     plot(3, 3, pch = NA, xlab = "m/z", ylab = "intensity", xlim = range(mz(x)),
          ylim = range(intensity(x)), main = main)
-    tmp <- lapply(x, function(z) points(mz(z), intensity(z), type = type, col = col,
+    tmp <- lapply(x, function(z) points(mz(z), intensity(z),
+                                        type = type, col = col,
                                         ...))
 }
 
@@ -123,7 +124,7 @@ getEdgelist <- function(peaklist) {
 #' @return
 #'
 #' `data.frame` with columns:
-#' - `"annotation network number"`: ion identify network (IIN) number. All
+#' - `"annotation network number"`: ion identity network (IIN) number. All
 #'   features predicted by `CAMERA` to be an adduct of a (co-eluting) compound
 #'   with the same mass are part of this IIN. If a feature was predicted to be
 #'   an adduct of two different compounds (with different masses) the ID of the
@@ -261,11 +262,11 @@ getFeatureAnnotations <- function(x) {
         res <- combn(seq_len(nrow(x)), 2, FUN = function(z) {
             anno <- .define_annot(x[z, ])
             iso <- .define_isotop(x[z, ])
-            if (is.na(anno)) anno <- character()
-            if (is.na(iso)) iso <- character()
+            if (is.na(anno[1])) anno <- character()
+            if (is.na(iso[1])) iso <- character()
             data.frame(ID1 = rownames(x)[z[1]],
                        ID2 =  rownames(x)[z[2]],
-                       EdgeType = if (length(anno)) "MS1 annotation" else "MS1 correlation",
+                       EdgeType = if (length(anno) || length(iso)) "MS1 annotation" else "MS1 correlation",
                        Score = 0.0,
                        Annotation = paste0(anno, iso, collapse = " "),
                        CorrelationGroup = x$pcgroup[1],
