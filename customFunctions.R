@@ -38,6 +38,21 @@ formatSpectraForGNPS <- function(x) {
         })}
 }
 
+#' Select the peaks matrix with the highest intensity.
+#' Function to select the peaks matrix with the highest TIC (sum of
+#' intensities)
+#'
+#' @param x `list` of `numeric` peaks matrices (with columns `"mz"` and
+#'     `"intensity"`)
+#'
+#' @param ... ignored
+#'
+#' @return single `numeric` matrix.
+maxTicPeakData <- function(x, ...) {
+    tics <- vapply(x, function(z) sum(z[, "intensity"]), NA_real_)
+    x[[which.max(tics)]]
+}
+
 #' @title Plot multiple spectra into the same plot
 #'
 #' @description
