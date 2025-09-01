@@ -16,14 +16,26 @@
 #' 
 #' @md
 formatSpectraForGNPS <- function(x) {
-    fids <- mcols(x)$feature_id
-    if (!length(fids))
-        stop("No column named 'feature_id' present in 'mcols(x)'")
-    fids <- as.integer(sub("^FT", "", fids))
-    mendoapply(x, fids, FUN = function(z, id) {
-        z@acquisitionNum <- id
-        z
-    })
+    if (inherits(x, "Spectra")) {
+        fid <- x$feature_id
+        pid <- x$chrom_peak_id
+        x <- selectSpectraVariables(x, c("acquisitionNum", "rtime",
+                                         "precursorMz", "precursorIntensity",
+                                         "precursorCharge", "dataStorage",
+                                         "dataOrigin", "scanIndex"))
+        x$FEATURE_ID <- fid
+        x$PEAK_ID <- pid
+        x$acquisitionNum <- as.integer(sub("FT", "", fid))
+        x
+    } else {
+        fids <- mcols(x)$feature_id
+        if (!length(fids))
+            stop("No column named 'feature_id' present in 'mcols(x)'")
+        fids <- as.integer(sub("^FT", "", fids))
+        mendoapply(x, fids, FUN = function(z, id) {
+            z@acquisitionNum <- id
+            z
+        })}
 }
 
 #' @title Plot multiple spectra into the same plot
