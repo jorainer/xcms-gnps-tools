@@ -48,7 +48,7 @@ formatSpectraForGNPS <- function(x) {
 #' @param ... ignored
 #'
 #' @return single `numeric` matrix.
-maxTicPeakData <- function(x, ...) {
+maxTicPeaksData <- function(x, ...) {
     tics <- vapply(x, function(z) sum(z[, "intensity"]), NA_real_)
     x[[which.max(tics)]]
 }
