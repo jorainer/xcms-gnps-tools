@@ -9,17 +9,21 @@ workflow (FBMN). See [this
 page](https://ccms-ucsd.github.io/GNPSDocumentation/featurebasedmolecularnetworking-with-xcms3)
 for details on xcms integration into FBMN, and the following [GitHub
 repo](https://github.com/DorresteinLaboratory/XCMS3_FeatureBasedMN) for example
-scripts as Jupyter notebook and RCommander script.
+scripts Rmarkdown documents as Jupyter notebooks.
  
 The main provided functions are:
 
-- `formatSpectraForGNPS`: format spectra for MGF export in the format expected
+- `formatSpectraForGNPS()`: format spectra for MGF export in the format expected
   by GNPS.
-- `getEdgelist`: extract a list of *edges* between co-eluting ions potentially
+- `maxTicPeaksData()`: helper function to be used with
+  `Spectra::combineSpectra()` to select the peak matrix from the fragment
+  spectra with the largest TIC (sum of all fragment intensities) for a group of
+  fragment spectra.
+- `getEdgelist()`: extract a list of *edges* between co-eluting ions potentially
   representing adducts or isotopes of the same metabolite as defined by
-  `CAMERA`.
-- `getFeatureAnnotations`: extract adduct annotations for features from a
-  `CAMERA` result in the format required for Ion Identity Networking (IIN) in
+  *CAMERA*.
+- `getFeatureAnnotations()`: extract adduct annotations for features from a
+  *CAMERA* result in the format required for Ion Identity Networking (IIN) in
   FBMN/GNPS.
   
 
