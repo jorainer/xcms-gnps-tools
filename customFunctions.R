@@ -18,7 +18,14 @@
 formatSpectraForGNPS <- function(x) {
     if (inherits(x, "Spectra")) {
         fid <- x$feature_id
-        pid <- x$chrom_peak_id
+        svs <- spectraVariables(x)
+        if (any(svs == "chrom_peak_id")) {
+            pid <- x$chrom_peak_id
+        } else {
+            if (any(svs == "peak_id"))
+                pid <- x$peak_id
+            else stop("No spectra variable 'chrom_peak_id' or 'peak_id' present")
+        }
         x <- selectSpectraVariables(x, c("acquisitionNum", "rtime",
                                          "precursorMz", "precursorIntensity",
                                          "precursorCharge", "dataStorage",
