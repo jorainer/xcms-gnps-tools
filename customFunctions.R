@@ -29,7 +29,8 @@ formatSpectraForGNPS <- function(x) {
         x <- selectSpectraVariables(x, c("acquisitionNum", "rtime",
                                          "precursorMz", "precursorIntensity",
                                          "precursorCharge", "dataStorage",
-                                         "dataOrigin", "scanIndex"))
+                                         "dataOrigin", "scanIndex", "mz",
+                                         "intensity"))
         x$FEATURE_ID <- fid
         x$PEAK_ID <- pid
         x$acquisitionNum <- as.integer(sub("FT", "", fid))
