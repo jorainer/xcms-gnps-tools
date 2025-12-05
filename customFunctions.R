@@ -12,28 +12,36 @@
 #'
 #' @return `Spectra` with the acquisition number replaced.
 #'
-#' @author Johannes Rainer
-#' 
+#' @author Johannes Rainer, Philippine Louail
+#'
 #' @md
 formatSpectraForGNPS <- function(x) {
     if (inherits(x, "Spectra")) {
-        fid <- x$feature_id
         svs <- spectraVariables(x)
-        if (any(svs == "chrom_peak_id")) {
-            pid <- x$chrom_peak_id
-        } else {
-            if (any(svs == "peak_id"))
-                pid <- x$peak_id
-            else stop("No spectra variable 'chrom_peak_id' or 'peak_id' present")
+        if (!"feature_id" %in% svs) {
+            stop("No 'feature_id' in spectra variables")
         }
-        x <- selectSpectraVariables(x, c("acquisitionNum", "rtime",
-                                         "precursorMz", "precursorIntensity",
-                                         "precursorCharge", "dataStorage",
-                                         "dataOrigin", "scanIndex", "mz",
-                                         "intensity"))
+        fid <- x$feature_id
+        if ("chrom_peak_id" %in% svs) pid <- x$chrom_peak_id
+        else pid <- NA
+        x <- selectSpectraVariables(
+            x,
+            c(
+                "acquisitionNum",
+                "rtime",
+                "precursorMz",
+                "precursorIntensity",
+                "precursorCharge",
+                "dataStorage",
+                "dataOrigin",
+                "scanIndex",
+                "mz",
+                "intensity"
+            )
+        )
         x$FEATURE_ID <- fid
-        x$PEAK_ID <- pid
-        x$acquisitionNum <- as.integer(sub("FT", "", fid))
+        if (!is.na(pid)) x$PEAK_ID <- pid
+        x$acquisitionNum <- as.integer(sub("^FT", "", fid))
         x
     } else {
         fids <- mcols(x)$feature_id
@@ -43,7 +51,8 @@ formatSpectraForGNPS <- function(x) {
         mendoapply(x, fids, FUN = function(z, id) {
             z@acquisitionNum <- id
             z
-        })}
+        })
+    }
 }
 
 #' Select the peaks matrix with the highest intensity.
@@ -75,11 +84,11 @@ maxTicPeaksData <- function(x, ...) {
 #'     vertical lines. For more details see documentation of `plot`.
 #'
 #' @param main `character(1)` defining the title.
-#' 
+#'
 #' @param ... additional arguments to be passed to `points`.
 #'
 #' @author Johannes Rainer
-#' 
+#'
 #' @md
 plotSpectra <- function(x, col = "#00000040", type = "h", main, ...) {
     plot(3, 3, pch = NA, xlab = "m/z", ylab = "intensity", xlim = range(mz(x)),
@@ -122,7 +131,7 @@ maxTic <- function(z) {
 #' isotope annotations are available, these are also added to the column.
 #' Column `"CorrelationGroup"` provides the information which
 #' features were grouped by `CAMERA` into the same group.
-#' 
+#'
 #' @param peaklist `data.frame` as returned by the [getPeaklist()] function
 #'   from `CAMERA` package or an `xsAnnotate` object.
 #'
@@ -130,9 +139,9 @@ maxTic <- function(z) {
 #'     details).
 #'
 #' @author Mar Garcia-Aloy
-#' 
+#'
 #' @examples
-#' 
+#'
 #' res <- getEdgelist(getPeaklist(xsaFA))
 getEdgelist <- function(peaklist) {
     if (is(peaklist, "xsAnnotate")) {
@@ -194,7 +203,7 @@ getFeatureAnnotations <- function(x) {
     adduct_def <- lapply(ids, function(id) {
         ## IDs of the same correlation group
         ids_pcgroup <- x@pspectra[[corr_group[id]]]
-        ## ID of the adduct annotation groups this id is part of 
+        ## ID of the adduct annotation groups this id is part of
         anno_grp <- x@annoID[x@annoID[, "id"] == id, "grpID"]
         ## Subset the adduct annotation to rows matching the annotation group
         ## of the present ID and to ids present in the same correlation group.
@@ -261,9 +270,9 @@ getFeatureAnnotations <- function(x) {
 #' @noRd
 .define_isotop <- function(w) {
   if (any(w$isotopes == "")) return(NA)
-  if (unlist(strsplit(w$isotopes[1], '\\]\\[') )[1] == 
+  if (unlist(strsplit(w$isotopes[1], '\\]\\[') )[1] ==
      unlist(strsplit(w$isotopes[2], '\\]\\[') )[1]) {
-    a = paste0("[", do.call(rbind, strsplit(w$isotopes, "\\]\\["))[, 2], 
+    a = paste0("[", do.call(rbind, strsplit(w$isotopes, "\\]\\["))[, 2],
                collapse = " ")
     b = paste0(unlist(strsplit(w$isotopes[2], '\\]') )[1], "]")
     paste0(b, a, " dm/z=", round(abs(w$mz[1] - w$mz[2]), 4))
@@ -274,9 +283,9 @@ getFeatureAnnotations <- function(x) {
 #' [M+NH4]+ 70.9681 [M+H]+ 87.9886
 #'
 #' @author Johannes Rainer
-#' 
+#'
 #' @noRd
-#' 
+#'
 #' @examples
 #'
 #' .extract_mass_adduct("[M+NH4]+ 70.9681 [M+H]+ 87.9886")
@@ -284,7 +293,7 @@ getFeatureAnnotations <- function(x) {
 .extract_mass_adduct <- function(x) {
     if (!length(x) || x == "") return(NA)
     spl <- unlist(strsplit(x, " ", fixed = TRUE))
-    spl[seq(2, by = 2, length.out = length(spl)/2)]
+    spl[seq(2, by = 2, length.out = length(spl) / 2)]
 }
 
 #' Helper function to process features from the same *pcgroup*
