@@ -16,15 +16,14 @@
 #'
 #' @md
 formatSpectraForGNPS <- function(x) {
-    if (!inherits(x, "Spectra")) {
+    if (inherits(x, "Spectra")) {
         svs <- spectraVariables(x)
         if (!"feature_id" %in% svs) {
             stop("No 'feature_id' in spectra variables")
         }
         fid <- x$feature_id
-        if ("chrom_peak_id" %in% svs) {
-            pid <- x$chrom_peak_id
-        }
+        if ("chrom_peak_id" %in% svs) pid <- x$chrom_peak_id
+        else pid <- NA
         x <- selectSpectraVariables(
             x,
             c(
@@ -40,11 +39,8 @@ formatSpectraForGNPS <- function(x) {
                 "intensity"
             )
         )
-
         x$FEATURE_ID <- fid
-        if (!is.null(pid)) {
-            x$PEAK_ID <- pid
-        }
+        if (!is.na(pid)) x$PEAK_ID <- pid
         x$acquisitionNum <- as.integer(sub("^FT", "", fid))
         x
     } else {
@@ -274,9 +270,9 @@ getFeatureAnnotations <- function(x) {
 #' @noRd
 .define_isotop <- function(w) {
   if (any(w$isotopes == "")) return(NA)
-  if (unlist(strsplit(w$isotopes[1], '\\]\\[') )[1] == 
+  if (unlist(strsplit(w$isotopes[1], '\\]\\[') )[1] ==
      unlist(strsplit(w$isotopes[2], '\\]\\[') )[1]) {
-    a = paste0("[", do.call(rbind, strsplit(w$isotopes, "\\]\\["))[, 2], 
+    a = paste0("[", do.call(rbind, strsplit(w$isotopes, "\\]\\["))[, 2],
                collapse = " ")
     b = paste0(unlist(strsplit(w$isotopes[2], '\\]') )[1], "]")
     paste0(b, a, " dm/z=", round(abs(w$mz[1] - w$mz[2]), 4))
