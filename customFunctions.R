@@ -12,43 +12,53 @@
 #'
 #' @return `Spectra` with the acquisition number replaced.
 #'
-#' @author Johannes Rainer
+#' @author Johannes Rainer, Philippine Louail
 #'
 #' @md
 formatSpectraForGNPS <- function(x) {
     if (!inherits(x, "Spectra")) {
-        stop("`x` must be a Spectra object")
-    }
-    svs <- spectraVariables(x)
-    if (!"feature_id" %in% svs) {
-        stop("No 'feature_id' in spectra variables")
-    }
-    fid <- x$feature_id
-    if ("chrom_peak_id" %in% svs) {
-        pid <- x$chrom_peak_id
-    }
-    x <- selectSpectraVariables(
-        x,
-        c(
-            "acquisitionNum",
-            "rtime",
-            "precursorMz",
-            "precursorIntensity",
-            "precursorCharge",
-            "dataStorage",
-            "dataOrigin",
-            "scanIndex",
-            "mz",
-            "intensity"
+        svs <- spectraVariables(x)
+        if (!"feature_id" %in% svs) {
+            stop("No 'feature_id' in spectra variables")
+        }
+        fid <- x$feature_id
+        if ("chrom_peak_id" %in% svs) {
+            pid <- x$chrom_peak_id
+        }
+        x <- selectSpectraVariables(
+            x,
+            c(
+                "acquisitionNum",
+                "rtime",
+                "precursorMz",
+                "precursorIntensity",
+                "precursorCharge",
+                "dataStorage",
+                "dataOrigin",
+                "scanIndex",
+                "mz",
+                "intensity"
+            )
         )
-    )
 
-    x$FEATURE_ID <- fid
-    if (!is.null(pid)) {
-        x$PEAK_ID <- pid
+        x$FEATURE_ID <- fid
+        if (!is.null(pid)) {
+            x$PEAK_ID <- pid
+        }
+        x$acquisitionNum <- as.integer(sub("^FT", "", fid))
+        x
+    } else {
+        fids <- mcols(x)$feature_id
+        if (!length(fids)) {
+            stop("No column named 'feature_id' present in 'mcols(x)'")
+        }
+        fids <- as.integer(sub("^FT", "", fids))
+        mendoapply(x, fids, FUN = function(z, id) {
+            z@acquisitionNum <- id
+            z
+        })
     }
-    x$acquisitionNum <- as.integer(sub("^FT", "", fid))
-    x
+    
 }
 
 #' Select the peaks matrix with the highest intensity.

@@ -1,6 +1,7 @@
 # Utility functions for use of xcms with GNPS
 
-Authors: Johannes Rainer, Mar Garcia-Aloy and Michael Witting.
+Authors: Johannes Rainer, Mar Garcia-Aloy, Philippine Louail and Michael 
+         Witting.
 
 This repository contains some utility functions to integrate `xcms`-based data
 processing into the GNPS [Feature-Based Molecular
