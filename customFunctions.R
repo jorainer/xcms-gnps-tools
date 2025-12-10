@@ -23,7 +23,7 @@ formatSpectraForGNPS <- function(x) {
         }
         fid <- x$feature_id
         if ("chrom_peak_id" %in% svs) pid <- x$chrom_peak_id
-        else pid <- NA
+        else pid <- NULL
         x <- selectSpectraVariables(
             x,
             c(
@@ -40,7 +40,7 @@ formatSpectraForGNPS <- function(x) {
             )
         )
         x$FEATURE_ID <- fid
-        if (!is.na(pid)) x$PEAK_ID <- pid
+        if (length(pid)) x$PEAK_ID <- pid
         x$acquisitionNum <- as.integer(sub("^FT", "", fid))
         x
     } else {
